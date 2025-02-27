@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <title>TURN ON THE LIGHT</title>
+  <link href="/bootstrap.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3">
+  <script src="/bootstrap.bundle.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"></script>
+  <script src="/jquery.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="ledOff" class="d-flex col-12">
+      <pre>
+        __/\\\______________/\\\\\\\\\\\\\\\__/\\\\\\\\\\\\____________________/\\\\\_______/\\\\\\\\\\\\\\\__/\\\\\\\\\\\\\\\_        
+         _\/\\\_____________\/\\\///////////__\/\\\////////\\\________________/\\\///\\\____\/\\\///////////__\/\\\///////////__       
+          _\/\\\_____________\/\\\_____________\/\\\______\//\\\_____________/\\\/__\///\\\__\/\\\_____________\/\\\_____________      
+           _\/\\\_____________\/\\\\\\\\\\\_____\/\\\_______\/\\\____________/\\\______\//\\\_\/\\\\\\\\\\\_____\/\\\\\\\\\\\_____     
+            _\/\\\_____________\/\\\///////______\/\\\_______\/\\\___________\/\\\_______\/\\\_\/\\\///////______\/\\\///////______    
+             _\/\\\_____________\/\\\_____________\/\\\_______\/\\\___________\//\\\______/\\\__\/\\\_____________\/\\\_____________   
+              _\/\\\_____________\/\\\_____________\/\\\_______/\\\_____________\///\\\__/\\\____\/\\\_____________\/\\\_____________  
+               _\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\/________________\///\\\\\/_____\/\\\_____________\/\\\_____________ 
+                _\///////////////__\///////////////__\////////////____________________\/////_______\///______________\///______________
+      </pre>
+    </div>
+    <div id="ledOn" class="d-flex col-12">
+      <pre>
+        __/\\\______________/\\\\\\\\\\\\\\\__/\\\\\\\\\\\\____________________/\\\\\_______/\\\\\_____/\\\_        
+         _\/\\\_____________\/\\\///////////__\/\\\////////\\\________________/\\\///\\\____\/\\\\\\___\/\\\_       
+          _\/\\\_____________\/\\\_____________\/\\\______\//\\\_____________/\\\/__\///\\\__\/\\\/\\\__\/\\\_      
+           _\/\\\_____________\/\\\\\\\\\\\_____\/\\\_______\/\\\____________/\\\______\//\\\_\/\\\//\\\_\/\\\_     
+            _\/\\\_____________\/\\\///////______\/\\\_______\/\\\___________\/\\\_______\/\\\_\/\\\\//\\\\/\\\_    
+             _\/\\\_____________\/\\\_____________\/\\\_______\/\\\___________\//\\\______/\\\__\/\\\_\//\\\/\\\_   
+              _\/\\\_____________\/\\\_____________\/\\\_______/\\\_____________\///\\\__/\\\____\/\\\__\//\\\\\\_  
+               _\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\/________________\///\\\\\/_____\/\\\___\//\\\\\_ 
+                _\///////////////__\///////////////__\////////////____________________\/////_______\///_____\/////__
+      </pre>
+    </div>
+  </div>
+  <div class="container d-flex justify-content-center row">
+    <button type="button" id="off-button" class="btn btn-dark col-2">Off</button>
+    <button type="button" id="switch-button" class="btn btn-info col-2">Switch</button>
+    <button type="button" id="on-button" class="btn btn-light col-2">On</button>
+  </div>
+  <div class="container d-flex justify-content-center row">
+    <div class="input-group col-9">
+      <span class="input-group-text" id="basic-addon1">GET</span>
+      <input id="command-input" type="text" class="form-control" placeholder="command/param1/param2">
+    </div>
+    <span id="answer" class="col-9">
+      
+    </span>
+  </div>  
+  <div class="container d-flex justify-content-center row">
+    <button type="button" id="call-button" class="btn btn-dark col-2">Call Command</button>
+  </div>
+  <style type="text/css">
+    .hidden {
+      display: none !important;
+    }
+  </style>
+  <script>
+    function ledIsOn(state){
+      if(state) {
+        $("#ledOff").addClass("hidden");
+        $("#ledOn").removeClass("hidden");
+      } else {
+        $("#ledOff").removeClass("hidden");
+        $("#ledOn").addClass("hidden");
+      }
+    }
+    $( document ).ready(function() {
+      
+      $("#off-button").on("click",function() {
+        $.get("/off",function(data){
+          ledIsOn(data.lit);
+        })
+      });
+      
+      $("#on-button").on("click",function() {
+        $.get("/on",function(data){
+          ledIsOn(data.lit);
+        })
+      });
+      
+      $("#switch-button").on("click",function() {
+        $.get("/switch",function(data){
+          ledIsOn(data.lit);
+        })
+      });
+      
+      $("#call-button").on("click",function() {
+        let command = "/" + $("#command-input").val()
+        $("#answer").load(command)
+      });
+      
+      $.get("/state",function(data){
+        ledIsOn(data.lit);
+      })
+      setInterval(function(){ 
+        $.get("/state",function(data){
+          ledIsOn(data.lit);
+        })
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
