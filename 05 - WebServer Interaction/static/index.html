@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum Fuse</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2e;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin: 50px auto;
+            width: 80%;
+            max-width: 400px;
+            background: #28293d;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .buttons button {
+            background: #ff6b6b;
+            border: none;
+            color: white;
+            padding: 15px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .buttons button:hover {
+            background: #ff8787;
+        }
+        .status {
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        .color-picker input {
+            width: 100%;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+            background: none;
+        }
+        .led-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .led-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Try me</h1>
+        
+        <div class="buttons">
+            <button id="btn1">ON</button>
+            <button id="btn2">OFF</button>
+        </div>
+        
+        <div class="status">
+            <h2>Température :</h2>
+            <p id="temperatureText">Chargement...</p>
+        </div>
+
+        <div class="color-picker">
+            <h2>Couleur générale :</h2>
+            <input type="color" id="globalColorPicker">
+        </div>
+
+        <div class="led-container" id="ledContainer"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn1 = document.getElementById("btn1");
+            const btn2 = document.getElementById("btn2");
+            const temperatureText = document.getElementById("temperatureText");
+            const globalColorPicker = document.getElementById("globalColorPicker");
+            const ledContainer = document.getElementById("ledContainer");
+            
+            function updateStatus() {
+                fetch("/status")
+                    .then(response => response.json())
+                    .then(data => {
+                        temperatureText.textContent = `Température : ${data.temperature}°C`;
+                    })
+                    .catch(error => {
+                        temperatureText.textContent = "Erreur de connexion";
+                        console.error("Erreur :", error);
+                    });
+            }
+
+            function refreshLedColors() {
+                fetch("/colors")
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach((color, index) => {
+                            const ledInput = document.querySelector(`input[data-led-id='${index}']`);
+                            if (ledInput) {
+                                ledInput.value = `rgb(${color.red}, ${color.green}, ${color.blue})`;
+                            }
+                        });
+                    })
+                    .catch(error => console.error("Erreur de rafraîchissement des couleurs :", error));
+            }
+
+            btn1.addEventListener("click", () => {
+                fetch("/power", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ value: "on" })
+                }).catch(error => console.error("Erreur :", error));
+            });
+
+            btn2.addEventListener("click", () => {
+                fetch("/power", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ value: "off" })
+                }).catch(error => console.error("Erreur :", error));
+            });
+
+            globalColorPicker.addEventListener("input", () => {
+                const color = globalColorPicker.value;
+                const [r, g, b] = color.match(/\w\w/g).map(hex => parseInt(hex, 16));
+                fetch("/colors", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ red: r, green: g, blue: b })
+                }).catch(error => console.error("Erreur :", error));
+            });
+
+            for (let i = 0; i < 12; i++) {
+                const ledPicker = document.createElement("div");
+                ledPicker.className = "led-picker";
+                
+                const label = document.createElement("label");
+                label.textContent = `LED ${i + 1}`;
+                
+                const colorInput = document.createElement("input");
+                colorInput.type = "color";
+                colorInput.dataset.ledId = i;
+                
+                colorInput.addEventListener("input", (event) => {
+                    const ledId = event.target.dataset.ledId;
+                    const color = event.target.value;
+                    const [r, g, b] = color.match(/\w\w/g).map(hex => parseInt(hex, 16));
+                    fetch(`/colors/${ledId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ red: r, green: g, blue: b })
+                    }).catch(error => console.error("Erreur :", error));
+                });
+                
+                ledPicker.appendChild(label);
+                ledPicker.appendChild(colorInput);
+                ledContainer.appendChild(ledPicker);
+            }
+
+            setInterval(updateStatus, 3000);
+            setInterval(refreshLedColors, 2000);
+            updateStatus();
+            refreshLedColors();
+        });
+    </script>
+</body>
+</html>

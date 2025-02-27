@@ -1,6 +1,6 @@
 # Consolidation
 
-In this part I propose you to tryand use all we did since the beginning. 
+In this part I propose you to try and use all we did since the beginning. 
 
 ## Simple button/LED interaction
 Can you write a code so that each button put a led to a certain color (your choice) and each consecutive push on any button color the next LED 
