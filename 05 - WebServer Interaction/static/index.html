@@ -109,7 +109,8 @@
                         data.forEach((color, index) => {
                             const ledInput = document.querySelector(`input[data-led-id='${index}']`);
                             if (ledInput) {
-                                ledInput.value = `rgb(${color.red}, ${color.green}, ${color.blue})`;
+                                console.log(ledInput);
+                                ledInput.value = "#" + color.red.toString(16) + color.green.toString(16) + color.blue.toString(16);
                             }
                         });
                     })
